@@ -40,11 +40,15 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && ln -s /usr/local/bin/node /usr/local/bin/nodejs
 
 
-RUN apt-get update && apt-get install -y git curl zip unzip python python3-pip && pip3 install --upgrade awscli && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y git curl zip unzip python python3-pip software-properties-common libxml2-dev && pip3 install --upgrade awscli && rm -rf /var/lib/apt/lists/*
 
-RUN add-apt-repository ppa:ondrej/php \
-  && apt-get update
-  && apt-get install -y php7.3
+RUN wget https://downloads.php.net/~cmb/php-7.3.0.tar.gz --no-check-certificate \
+    && tar zxvf php-7.3* && cd php-7.3.0 \
+    && ./configure --enable-fpm --with-fpm-user=www-data --with-fpm-group=www-data --prefix=/etc/php/7.3 --enable-debug --with-mysqli --with-pdo-mysql --with-curl --enable-mbstring\
+    && make && make install \
+    && rm -rf /application/php-7.3*
+
+RUN cp /etc/php/7.3/etc/php-fpm.conf.default /etc/php/7.3/etc/php-fpm.conf && ln -s /etc/php/7.3/bin/php /usr/bin/php
 
 ARG user=jenkins
 ARG group=jenkins
