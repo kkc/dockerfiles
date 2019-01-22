@@ -42,14 +42,16 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
 
 RUN apt-get update && apt-get install -y git curl zip unzip python python3-pip software-properties-common libxml2-dev && pip3 install --upgrade awscli && rm -rf /var/lib/apt/lists/*
 
-RUN wget https://downloads.php.net/~cmb/php-7.3.0.tar.gz --no-check-certificate \
-    && tar zxvf php-7.3* && cd php-7.3.0 \
-    && ./configure --enable-fpm --with-fpm-user=www-data --with-fpm-group=www-data --prefix=/etc/php/7.3 --enable-debug --with-mysqli --with-pdo-mysql --with-curl --enable-mbstring\
-    && make && make install \
-    && rm -rf /application/php-7.3*
+RUN wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg \
+  && sh -c 'echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list' \
+  && apt update \
+  && apt install -y php7.3 php7.3-fpm php7.3-common php7.3-cli \
+  && apt install -y php7.3-bcmath php7.3-bz2 php7.3-curl php7.3-gd php7.3-intl php7.3-json php7.3-mbstring php7.3-readline php7.3-xml php7.3-zip
 
-RUN cp /etc/php/7.3/etc/php-fpm.conf.default /etc/php/7.3/etc/php-fpm.conf && ln -s /etc/php/7.3/bin/php /usr/bin/php
-
+RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
+  && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
+  && composer self-update
+  
 ARG user=jenkins
 ARG group=jenkins
 ARG uid=1000
